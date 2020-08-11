@@ -1,0 +1,2 @@
+rootProject.name='Connectivity Geofence'
+include ':app'
