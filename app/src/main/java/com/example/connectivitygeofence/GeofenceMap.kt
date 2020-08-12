@@ -16,6 +16,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 
@@ -24,7 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import java.io.IOException
 import java.util.jar.Manifest
 
-class GeofenceMap : AppCompatActivity(), OnMapReadyCallback {
+class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
     companion object{
         const val TAG = "GeofenceMap"
@@ -33,6 +34,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var geofencingClient: GeofencingClient
 
     //Widgets
     private lateinit var editText: EditText
@@ -42,6 +44,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_geofence_map)
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+        geofencingClient = LocationServices.getGeofencingClient(this)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -70,8 +73,10 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        mMap.setOnMapLongClickListener(this)
         getDevicePosition()
         zoomAtDevicePosition()
+
 
         // Add a marker in Sydney and move the camera
         val sydney = LatLng(-34.0, 151.0)
@@ -121,6 +126,22 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    override fun onMapLongClick(p0: LatLng?) {
+        mMap.clear()
+        Log.d(TAG, "Posicion presionada: $p0")
+        if(p0 != null){
+            addMarker(p0)
+            //addCircle(p0)
+        }
+
+    }
+
+    private fun addMarker(latLng: LatLng){
+        val markerOptions= MarkerOptions()
+        markerOptions.position(latLng)
+        mMap.addMarker(markerOptions)
+    }
+
     private fun changeButtonPosition(){
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map)
         val locationButton= (mapFragment?.view?.findViewById<View>(Integer.parseInt("1"))?.parent as View).findViewById<View>(Integer.parseInt("2"))
@@ -131,7 +152,6 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback {
         rlp.setMargins(0,160,60,0);
     }
 
-    //hola mundo
 
 }
 
