@@ -1,6 +1,7 @@
 package com.example.connectivitygeofence
 
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -19,6 +20,8 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CircleOptions
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -30,6 +33,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     companion object{
         const val TAG = "GeofenceMap"
         const val DEFAULT_ZOOM = 15f
+        const val DEFAULT_RADIUS = 200e10
     }
 
     private lateinit var mMap: GoogleMap
@@ -131,15 +135,27 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         Log.d(TAG, "Posicion presionada: $p0")
         if(p0 != null){
             addMarker(p0)
-            //addCircle(p0)
+            addCircle(p0)
         }
 
     }
 
     private fun addMarker(latLng: LatLng){
-        val markerOptions= MarkerOptions()
+        val markerOptions = MarkerOptions()
         markerOptions.position(latLng)
+
         mMap.addMarker(markerOptions)
+    }
+
+    private fun addCircle(latLng: LatLng){
+        val circleOptions = CircleOptions()
+        circleOptions.center(latLng)
+        circleOptions.radius(200.00)
+        circleOptions.strokeColor(Color.argb(255, 255, 0, 0))
+        circleOptions.fillColor(Color.argb(64, 255, 0, 0))
+        circleOptions.strokeWidth(4f)
+        mMap.addCircle(circleOptions)
+
     }
 
     private fun changeButtonPosition(){
