@@ -12,19 +12,15 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.CircleOptions
+import com.google.android.gms.maps.model.*
 
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.activity_geofence_map.*
 import java.io.IOException
 import java.util.jar.Manifest
 
@@ -33,15 +29,20 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     companion object{
         const val TAG = "GeofenceMap"
         const val DEFAULT_ZOOM = 15f
-        const val DEFAULT_RADIUS = 200e10
+        const val DEFAULT_RADIUS = 200.00
     }
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var geofencingClient: GeofencingClient
+    private lateinit var circle: Circle
+    private var currentRadius: Double = DEFAULT_RADIUS
+
+
 
     //Widgets
     private lateinit var editText: EditText
+    private lateinit var clearButton: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +56,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        editText= findViewById(R.id.editText)
+        editText = findViewById(R.id.editText)
         editText.setOnEditorActionListener { v, actionId, event ->
             if(actionId == EditorInfo.IME_ACTION_DONE){
                 //execute method for searching
@@ -63,6 +64,35 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             }
             false
         }
+
+        clearButton = findViewById(R.id.ic_clear)
+        clearButton.setOnClickListener { v: View ->
+            editText.setText("")
+        }
+
+
+
+        seekBar?.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                return
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                return
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                Log.d(TAG, "SeekBar progress: ${seekBar?.progress}")
+
+                when(seekBar?.progress){
+                    0 -> changeRadius(150.00)
+                    1 -> changeRadius(DEFAULT_RADIUS)
+                    2 -> changeRadius(250.00)
+                    3 -> changeRadius(300.00)
+                    else -> Log.d(TAG, "Error en seekBar")
+                }
+            }
+        })
     }
 
     /**
@@ -130,6 +160,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         }
     }
 
+
+
     override fun onMapLongClick(p0: LatLng?) {
         mMap.clear()
         Log.d(TAG, "Posicion presionada: $p0")
@@ -150,11 +182,11 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private fun addCircle(latLng: LatLng){
         val circleOptions = CircleOptions()
         circleOptions.center(latLng)
-        circleOptions.radius(200.00)
+        circleOptions.radius(currentRadius)
         circleOptions.strokeColor(Color.argb(255, 255, 0, 0))
         circleOptions.fillColor(Color.argb(64, 255, 0, 0))
         circleOptions.strokeWidth(4f)
-        mMap.addCircle(circleOptions)
+        circle = mMap.addCircle(circleOptions)
 
     }
 
@@ -166,6 +198,13 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP,RelativeLayout.TRUE)
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0)
         rlp.setMargins(0,160,60,0);
+    }
+
+    private fun changeRadius(radius: Double){
+        currentRadius = radius
+        if(this::circle.isInitialized){
+            circle.radius = currentRadius
+        }
     }
 
 
