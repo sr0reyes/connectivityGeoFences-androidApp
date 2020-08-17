@@ -1,5 +1,7 @@
 package com.example.connectivitygeofence
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Address
@@ -14,6 +16,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.core.content.ContextCompat
+import com.example.connectivitygeofence.MainActivity.Companion.FINE_LOCATION_REQUEST_CODE
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
@@ -111,6 +114,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
                 createGeoFence(circle.center, circle.radius)
             }else {
                 Log.d(TAG, "No hay geofence creada en el mapa")
+                showDialog()
             }
         }
     }
@@ -248,6 +252,21 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         }
     }
 
+    private fun showDialog(){
+        val builder: AlertDialog.Builder? = this.let{
+            AlertDialog.Builder(it)
+        }
+
+        builder?.setMessage(R.string.no_geofence_message)
+        builder?.setTitle(R.string.app_name)
+
+        builder?.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
+        })
+
+        val dialog: AlertDialog? = builder?.create()
+
+        dialog?.show()
+    }
 
 }
 
