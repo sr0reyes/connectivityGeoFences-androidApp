@@ -15,10 +15,12 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.OnSuccessListener
 
 import kotlinx.android.synthetic.main.activity_geofence_map.*
 import java.io.IOException
@@ -35,6 +37,9 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var geofencingClient: GeofencingClient
+    private lateinit var geofenceHelper: GeofenceHelper
+
+    //Geofence attributes
     private lateinit var circle: Circle
     private var currentRadius: Double = DEFAULT_RADIUS
 
@@ -43,6 +48,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     //Widgets
     private lateinit var editText: EditText
     private lateinit var clearButton: ImageView
+    private lateinit var seekBar: SeekBar
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,14 +57,16 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geofencingClient = LocationServices.getGeofencingClient(this)
+        geofenceHelper = GeofenceHelper(this)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        // search bar
         editText = findViewById(R.id.editText)
-        editText.setOnEditorActionListener { v, actionId, event ->
+        editText.setOnEditorActionListener { _, actionId, _ ->
             if(actionId == EditorInfo.IME_ACTION_DONE){
                 //execute method for searching
                 geoLocate()
@@ -65,16 +74,24 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             false
         }
 
-        clearButton = findViewById(R.id.ic_clear)
-        clearButton.setOnClickListener { v: View ->
+        // clear button
+        clearButton = findViewById(R.id.clear_button)
+        clearButton.setOnClickListener {
             editText.setText("")
         }
 
 
-
-        seekBar?.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+        // radius seekBar
+        seekBar = findViewById(R.id.seekBar)
+        seekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                return
+                when(progress){
+                    0 -> currentRadius = 150.00
+                    1 -> currentRadius = DEFAULT_RADIUS
+                    2 -> currentRadius = 250.00
+                    3 -> currentRadius = 300.00
+                    else -> Log.d(TAG, "Error en seekBar")
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -82,17 +99,20 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                Log.d(TAG, "SeekBar progress: ${seekBar?.progress}")
+                changeRadius(currentRadius)
+                Log.d(TAG, "SeekBar progress: ${seekBar?.progress}, radius: $currentRadius")
 
-                when(seekBar?.progress){
-                    0 -> changeRadius(150.00)
-                    1 -> changeRadius(DEFAULT_RADIUS)
-                    2 -> changeRadius(250.00)
-                    3 -> changeRadius(300.00)
-                    else -> Log.d(TAG, "Error en seekBar")
-                }
             }
         })
+
+
+        floating_create.setOnClickListener {
+            if(this::circle.isInitialized){
+                createGeoFence(circle.center, circle.radius)
+            }else {
+                Log.d(TAG, "No hay geofence creada en el mapa")
+            }
+        }
     }
 
     /**
@@ -153,7 +173,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         }
 
         if(list.isNotEmpty()){
-            val address = list.get(0)
+            val address = list[0]
             Log.d(TAG, "geoLocate found location: $address")
             val latLng = LatLng(address.latitude, address.longitude)
             moveCamera(latLng, DEFAULT_ZOOM)
@@ -164,7 +184,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     override fun onMapLongClick(p0: LatLng?) {
         mMap.clear()
-        Log.d(TAG, "Posicion presionada: $p0")
+        Log.d(TAG, "onMapLongClick: Geofence dibujado en la posicon: $p0, radio: $currentRadius")
         if(p0 != null){
             addMarker(p0)
             addCircle(p0)
@@ -190,6 +210,27 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     }
 
+    private fun createGeoFence(latLng: LatLng, radius: Double){
+        val id: String = System.currentTimeMillis().toString()
+        val geofence = geofenceHelper.getGeofence(id, latLng, radius.toFloat(), Geofence.GEOFENCE_TRANSITION_DWELL)
+        val pendingIntent = geofenceHelper.getPendingIntent()
+        val geofencingRequest = geofenceHelper.getGeoFencingRequest(geofence)
+
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
+            addOnSuccessListener {
+                Log.d(TAG,"createGeoFence onSuccess, geofence added")
+            }
+
+            addOnFailureListener{ e->
+                val errorMessage = geofenceHelper.getErrors(e)
+                Log.d(TAG, "createGeoFence onFailure: $errorMessage")
+            }
+        }
+
+
+        Log.d(TAG, "createGeofence: se creo la geofence: id: $id, position: $latLng, radius: $radius")
+    }
+
     private fun changeButtonPosition(){
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map)
         val locationButton= (mapFragment?.view?.findViewById<View>(Integer.parseInt("1"))?.parent as View).findViewById<View>(Integer.parseInt("2"))
@@ -197,7 +238,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         // position on right bottom
         rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP,RelativeLayout.TRUE)
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0)
-        rlp.setMargins(0,160,60,0);
+        rlp.setMargins(0,160,60,0)
     }
 
     private fun changeRadius(radius: Double){

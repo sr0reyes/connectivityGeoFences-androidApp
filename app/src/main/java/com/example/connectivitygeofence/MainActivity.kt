@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         getPermissions()
 
-        fab.setOnClickListener { view ->
+        floating_add.setOnClickListener { view ->
             val intent = Intent(this, GeofenceMap::class.java)
             startActivity(intent)
         }
