@@ -7,27 +7,28 @@ import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.renderscript.Sampler
 import android.util.Log
-import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.connectivitygeofence.MainActivity.Companion.FINE_LOCATION_REQUEST_CODE
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.*
-import com.google.android.gms.tasks.OnSuccessListener
-
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.Circle
+import com.google.android.gms.maps.model.CircleOptions
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_geofence_map.*
 import java.io.IOException
-import java.util.jar.Manifest
+import java.util.*
 
 class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
@@ -45,8 +46,10 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     //Geofence attributes
     private lateinit var circle: Circle
+    private lateinit var address: String
     private var currentRadius: Double = DEFAULT_RADIUS
     private var geofenceAction: Int = DEFAULT_ACTION
+
 
 
 
@@ -189,12 +192,13 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
 
 
-    override fun onMapLongClick(p0: LatLng?) {
+    override fun onMapLongClick(latLng: LatLng?) {
         mMap.clear()
-        Log.d(TAG, "onMapLongClick: Geofence dibujado en la posicon: $p0, radio: $currentRadius")
-        if(p0 != null){
-            addMarker(p0)
-            addCircle(p0)
+        if(latLng != null){
+            showLocation(latLng)
+            addMarker(latLng)
+            addCircle(latLng)
+            Log.d(TAG, "onMapLongClick: Geofence dibujado en la posicon: $latLng, radio: $currentRadius, address: ${this.address}")
         }
 
     }
@@ -225,7 +229,9 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
             addOnSuccessListener {
+                showToast("Geovallado creado")
                 Log.d(TAG,"createGeoFence onSuccess, geofence added")
+                finish()
             }
 
             addOnFailureListener{ e->
@@ -292,6 +298,37 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         val dialog: AlertDialog? = builder?.create()
 
         dialog?.show()
+    }
+
+    private fun showLocation(latLng: LatLng){
+
+        val geocoder: Geocoder
+        val addresses: List<Address>
+        geocoder = Geocoder(this, Locale.getDefault())
+
+        addresses = geocoder.getFromLocation(
+            latLng.latitude,
+            latLng.longitude,
+            1
+        ) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+
+        val address = addresses[0]
+            .getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+
+        this.address = address
+        editText.setText(this.address)
+
+        Log.d(TAG, "Location clicked: $address")
+
+    }
+
+    private fun showToast(message: String){
+
+        val duration = Toast.LENGTH_SHORT
+
+        val toast = Toast.makeText(applicationContext, message, duration)
+        toast.show()
     }
 
 }
