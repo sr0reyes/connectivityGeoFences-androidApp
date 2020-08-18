@@ -35,6 +35,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         const val TAG = "GeofenceMap"
         const val DEFAULT_ZOOM = 15f
         const val DEFAULT_RADIUS = 200.00
+        const val DEFAULT_ACTION = 0
     }
 
     private lateinit var mMap: GoogleMap
@@ -45,6 +46,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     //Geofence attributes
     private lateinit var circle: Circle
     private var currentRadius: Double = DEFAULT_RADIUS
+    private var geofenceAction: Int = DEFAULT_ACTION
 
 
 
@@ -111,10 +113,11 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
         floating_create.setOnClickListener {
             if(this::circle.isInitialized){
-                createGeoFence(circle.center, circle.radius)
+                showActionDialog()
+
             }else {
                 Log.d(TAG, "No hay geofence creada en el mapa")
-                showDialog()
+                showAlertDialog()
             }
         }
     }
@@ -214,10 +217,10 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     }
 
-    private fun createGeoFence(latLng: LatLng, radius: Double){
+    private fun createGeoFence(latLng: LatLng, radius: Double, action: Int){
         val id: String = System.currentTimeMillis().toString()
-        val geofence = geofenceHelper.getGeofence(id, latLng, radius.toFloat(), Geofence.GEOFENCE_TRANSITION_DWELL)
-        val pendingIntent = geofenceHelper.getPendingIntent()
+        val geofence = geofenceHelper.getGeofence("hola", latLng, radius.toFloat(), Geofence.GEOFENCE_TRANSITION_DWELL)
+        val pendingIntent = geofenceHelper.getPendingIntent(action)
         val geofencingRequest = geofenceHelper.getGeoFencingRequest(geofence)
 
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
@@ -252,7 +255,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         }
     }
 
-    private fun showDialog(){
+    private fun showAlertDialog(){
         val builder: AlertDialog.Builder? = this.let{
             AlertDialog.Builder(it)
         }
@@ -261,6 +264,29 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         builder?.setTitle(R.string.app_name)
 
         builder?.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
+        })
+
+        val dialog: AlertDialog? = builder?.create()
+
+        dialog?.show()
+    }
+
+    private fun showActionDialog(){
+        val builder: AlertDialog.Builder? = this.let{
+            AlertDialog.Builder(it)
+        }
+
+        builder?.setTitle("Selecciono una acción")
+        builder?.setSingleChoiceItems(R.array.action_options, 0,
+                        DialogInterface.OnClickListener { dialog, item ->
+                            geofenceAction = item
+                        })
+        builder?.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
+            createGeoFence(circle.center, currentRadius, geofenceAction)
+        })
+
+        builder?.setNegativeButton(R.string.cancel, DialogInterface.OnClickListener{dialog, id ->
+
         })
 
         val dialog: AlertDialog? = builder?.create()
