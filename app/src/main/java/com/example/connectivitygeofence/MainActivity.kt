@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
 
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -31,12 +32,19 @@ class MainActivity : AppCompatActivity() {
 
 
         getPermissions()
+        buildRecyclerView()
 
         floating_add.setOnClickListener { view ->
             val intent = Intent(this, GeofenceMap::class.java)
             startActivity(intent)
         }
     }
+
+    private fun buildRecyclerView(){
+
+
+    }
+
 
     private fun getPermissions(){
         when{

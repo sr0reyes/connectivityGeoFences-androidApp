@@ -5,6 +5,8 @@
 
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
+    <string name="default_location">Location</string>
+    <string name="default_action">Action</string>
     <string name="permissions_message">Esta app activará ó desactivará el Wi-Fi o Bluetooth cuando el dipositivo esté cerca de una posición que ustéd especifique.
         Es necesario que de permiso de acceder a su ubicación y que se encuentre activa para poder funcionar correctamente.</string>
     <string name="no_geofence_message">Debe de establecer un geovallado en el mapa. Mantenga precionado en el punto deseado del mapa para crearlo</string>

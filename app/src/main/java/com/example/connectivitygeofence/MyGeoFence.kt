@@ -16,5 +16,19 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, location: String) {
     private val radius = circle.radius
     private val geofenceId = id.toString()
     private val pendingIntentId = id
+    private var actionName: String
 
+    init {
+        actionName = getActionName(action)
+    }
+
+
+    private fun getActionName(action: Int): String{
+        when(action){
+            0 -> return "Activar"
+            1 -> return "Desactivar"
+        }
+
+        return "No valido"
+    }
 }
