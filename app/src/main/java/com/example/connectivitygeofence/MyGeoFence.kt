@@ -17,6 +17,4 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, location: String) {
     private val geofenceId = id.toString()
     private val pendingIntentId = id
 
-    
-
 }
