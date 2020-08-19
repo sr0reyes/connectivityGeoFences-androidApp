@@ -288,7 +288,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
                             geofenceAction = item
                         })
         builder?.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
-            createGeoFence(circle.center, currentRadius, geofenceAction)
+            createGeoFence(circle.center, circle.radius, geofenceAction)
         })
 
         builder?.setNegativeButton(R.string.cancel, DialogInterface.OnClickListener{dialog, id ->
@@ -302,9 +302,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     private fun showLocation(latLng: LatLng){
 
-        val geocoder: Geocoder
         val addresses: List<Address>
-        geocoder = Geocoder(this, Locale.getDefault())
+        val geocoder: Geocoder = Geocoder(this, Locale.getDefault())
 
         addresses = geocoder.getFromLocation(
             latLng.latitude,
