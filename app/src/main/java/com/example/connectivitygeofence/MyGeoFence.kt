@@ -12,11 +12,12 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, location: String) {
 
     }
 
-    private val latLng = circle.center
-    private val radius = circle.radius
-    private val geofenceId = id.toString()
-    private val pendingIntentId = id
-    private var actionName: String
+    val latLng = circle.center
+    val radius = circle.radius
+    val locationName = location
+    val geofenceId = id.toString()
+    val pendingIntentId = id
+    var actionName: String
 
     init {
         actionName = getActionName(action)

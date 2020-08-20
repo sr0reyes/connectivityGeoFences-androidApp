@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildRecyclerView(){
-
+        
 
     }
 
