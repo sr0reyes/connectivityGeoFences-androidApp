@@ -1,4 +1,4 @@
-package com.example.connectivitygeofence
+package com.example.connectivitygeofence.Activities
 
 import android.app.AlertDialog
 import android.content.DialogInterface
@@ -14,6 +14,9 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.connectivitygeofence.GeofenceHelper
+import com.example.connectivitygeofence.MyGeoFence
+import com.example.connectivitygeofence.R
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
@@ -45,10 +48,13 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private lateinit var geofenceHelper: GeofenceHelper
 
     //Geofence attributes
-    private lateinit var circle: Circle
-    private lateinit var address: String
-    private var currentRadius: Double = DEFAULT_RADIUS
+    private var geofenceId: Int = 0
+    private lateinit var geofenceCircle: Circle
+    private lateinit var geofenceAddress: String
     private var geofenceAction: Int = DEFAULT_ACTION
+
+
+    private var currentRadius: Double = DEFAULT_RADIUS
 
 
 
@@ -95,7 +101,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 when(progress){
                     0 -> currentRadius = 150.00
-                    1 -> currentRadius = DEFAULT_RADIUS
+                    1 -> currentRadius =
+                        DEFAULT_RADIUS
                     2 -> currentRadius = 250.00
                     3 -> currentRadius = 300.00
                     else -> Log.d(TAG, "Error en seekBar")
@@ -115,7 +122,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
 
         floating_create.setOnClickListener {
-            if(this::circle.isInitialized){
+            if(this::geofenceCircle.isInitialized){
                 showActionDialog()
 
             }else {
@@ -161,7 +168,9 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
             if(location != null){
                 val latLng = LatLng(location.latitude, location.longitude)
-                moveCamera(latLng, DEFAULT_ZOOM)
+                moveCamera(latLng,
+                    DEFAULT_ZOOM
+                )
             }
         }
     }
@@ -186,7 +195,9 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             val address = list[0]
             Log.d(TAG, "geoLocate found location: $address")
             val latLng = LatLng(address.latitude, address.longitude)
-            moveCamera(latLng, DEFAULT_ZOOM)
+            moveCamera(latLng,
+                DEFAULT_ZOOM
+            )
         }
     }
 
@@ -198,7 +209,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             showLocation(latLng)
             addMarker(latLng)
             addCircle(latLng)
-            Log.d(TAG, "onMapLongClick: Geofence dibujado en la posicon: $latLng, radio: $currentRadius, address: ${this.address}")
+            Log.d(TAG, "onMapLongClick: Geofence dibujado en la posicon: $latLng, radio: $currentRadius, address: ${this.geofenceAddress}")
         }
 
     }
@@ -217,19 +228,21 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         circleOptions.strokeColor(Color.argb(255, 255, 0, 0))
         circleOptions.fillColor(Color.argb(64, 255, 0, 0))
         circleOptions.strokeWidth(4f)
-        circle = mMap.addCircle(circleOptions)
+        geofenceCircle = mMap.addCircle(circleOptions)
 
     }
 
     private fun createGeoFence(latLng: LatLng, radius: Double, action: Int){
-        val id: String = System.currentTimeMillis().toString()
-        val geofence = geofenceHelper.getGeofence("hola", latLng, radius.toFloat(), Geofence.GEOFENCE_TRANSITION_DWELL)
+        geofenceId = System.currentTimeMillis().toInt()
+        val geofence = geofenceHelper.getGeofence(geofenceId.toString(), latLng, radius.toFloat(), Geofence.GEOFENCE_TRANSITION_DWELL)
         val pendingIntent = geofenceHelper.getPendingIntent(action)
         val geofencingRequest = geofenceHelper.getGeoFencingRequest(geofence)
 
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
             addOnSuccessListener {
                 showToast("Geovallado creado")
+                val createdGeofence = MyGeoFence(geofenceId, geofenceCircle, geofenceAction, geofenceAddress)
+                MyGeoFence.bluetoothGeoFences.add(createdGeofence)
                 Log.d(TAG,"createGeoFence onSuccess, geofence added")
                 finish()
             }
@@ -241,7 +254,7 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         }
 
 
-        Log.d(TAG, "createGeofence: se creo la geofence: id: $id, position: $latLng, radius: $radius")
+        Log.d(TAG, "createGeofence: se creo la geofence: id: $geofenceId, position: $latLng, radius: $radius")
     }
 
     private fun changeButtonPosition(){
@@ -256,8 +269,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     private fun changeRadius(radius: Double){
         currentRadius = radius
-        if(this::circle.isInitialized){
-            circle.radius = currentRadius
+        if(this::geofenceCircle.isInitialized){
+            geofenceCircle.radius = currentRadius
         }
     }
 
@@ -283,15 +296,16 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         }
 
         builder?.setTitle("Selecciono una acción")
-        builder?.setSingleChoiceItems(R.array.action_options, 0,
+        builder?.setSingleChoiceItems(
+            R.array.action_options, 0,
                         DialogInterface.OnClickListener { dialog, item ->
                             geofenceAction = item
                         })
         builder?.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
-            createGeoFence(circle.center, circle.radius, geofenceAction)
+            createGeoFence(geofenceCircle.center, geofenceCircle.radius, geofenceAction)
         })
 
-        builder?.setNegativeButton(R.string.cancel, DialogInterface.OnClickListener{dialog, id ->
+        builder?.setNegativeButton(R.string.cancel, DialogInterface.OnClickListener{ dialog, id ->
 
         })
 
@@ -315,8 +329,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         val address = addresses[0]
             .getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
 
-        this.address = address
-        editText.setText(this.address)
+        this.geofenceAddress = address
+        editText.setText(this.geofenceAddress)
 
         Log.d(TAG, "Location clicked: $address")
 

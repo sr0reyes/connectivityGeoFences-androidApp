@@ -1,28 +1,35 @@
-package com.example.connectivitygeofence
+package com.example.connectivitygeofence.Activities
 
 import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.connectivitygeofence.MyGeoFence
+import com.example.connectivitygeofence.R
+import com.example.connectivitygeofence.RecyclerViewAdapter
 
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class GefencesList : AppCompatActivity() {
     companion object{
         const val TAG = "MainActivity"
         const val FINE_LOCATION_REQUEST_CODE = 1001
     }
+
+    private lateinit var rvAdapter: RecyclerViewAdapter
+
+    // Geogences List
+    private lateinit var currentList: MutableList<MyGeoFence>
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-
+        currentList =  MyGeoFence.bluetoothGeoFences
         getPermissions()
         buildRecyclerView()
 
@@ -40,8 +47,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        rvAdapter.notifyDataSetChanged()
+    }
+
     private fun buildRecyclerView(){
-        
+
+        recycler_view.apply {
+            layoutManager = LinearLayoutManager(this@GefencesList)
+            rvAdapter = RecyclerViewAdapter(currentList)
+            adapter = rvAdapter
+        }
 
     }
 
@@ -61,7 +78,8 @@ class MainActivity : AppCompatActivity() {
                 // Just Ask for the permissions
                 requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    FINE_LOCATION_REQUEST_CODE)
+                    FINE_LOCATION_REQUEST_CODE
+                )
             }
         }
     }
@@ -99,7 +117,8 @@ class MainActivity : AppCompatActivity() {
             //ask for permissions
             requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                FINE_LOCATION_REQUEST_CODE)
+                FINE_LOCATION_REQUEST_CODE
+            )
         })
 
         val dialog: AlertDialog? = builder?.create()
