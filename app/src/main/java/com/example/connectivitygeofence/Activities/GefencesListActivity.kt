@@ -11,6 +11,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.connectivitygeofence.MyGeoFence
 import com.example.connectivitygeofence.R
@@ -18,7 +19,7 @@ import com.example.connectivitygeofence.RecyclerViewAdapter
 
 import kotlinx.android.synthetic.main.activity_main.*
 
-class GefencesList : AppCompatActivity() {
+class GefencesListActivity : AppCompatActivity() {
     companion object{
         const val TAG = "MainActivity"
         const val FINE_LOCATION_REQUEST_CODE = 1001
@@ -37,12 +38,13 @@ class GefencesList : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+
         currentList =  MyGeoFence.bluetoothGeoFences
         getPermissions()
         buildRecyclerView()
 
         floating_add.setOnClickListener { view ->
-            val intent = Intent(this, GeofenceMap::class.java)
+            val intent = Intent(this, GeofenceMapActivity::class.java)
             startActivity(intent)
         }
     }
@@ -55,10 +57,13 @@ class GefencesList : AppCompatActivity() {
     private fun buildRecyclerView(){
 
         recycler_view.apply {
-            layoutManager = LinearLayoutManager(this@GefencesList)
+            layoutManager = LinearLayoutManager(this@GefencesListActivity)
             rvAdapter = RecyclerViewAdapter(currentList)
             adapter = rvAdapter
         }
+
+        val dividerItemDecoration = DividerItemDecoration(applicationContext, DividerItemDecoration.VERTICAL)
+        recycler_view.addItemDecoration(dividerItemDecoration)
 
     }
 

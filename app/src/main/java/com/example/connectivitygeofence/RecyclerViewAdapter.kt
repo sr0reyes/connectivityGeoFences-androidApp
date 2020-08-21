@@ -21,6 +21,12 @@ class RecyclerViewAdapter(geofencesList: MutableList<MyGeoFence>): RecyclerView.
         val geofence = geofencesItems[position]
         val locationString =  geofence.locationName
         val actionString = geofence.actionName
+
+        when(holder){
+            is ViewHolder ->
+                holder.bind(locationString, actionString)
+        }
+
     }
 
     override fun getItemCount(): Int {
@@ -32,6 +38,12 @@ class RecyclerViewAdapter(geofencesList: MutableList<MyGeoFence>): RecyclerView.
 
         val location_tv = v.location_tv
         val action_tv = v.action_tv
+
+        fun bind(location: String, action: String){
+            location_tv.text = location
+            action_tv.text = action
+
+        }
 
     }
 

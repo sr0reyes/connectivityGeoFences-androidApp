@@ -33,7 +33,7 @@ import kotlinx.android.synthetic.main.activity_geofence_map.*
 import java.io.IOException
 import java.util.*
 
-class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
+class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
     companion object{
         const val TAG = "GeofenceMap"
@@ -68,6 +68,8 @@ class GeofenceMap : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_geofence_map)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true);
+        supportActionBar?.setDisplayShowHomeEnabled(true);
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geofencingClient = LocationServices.getGeofencingClient(this)
