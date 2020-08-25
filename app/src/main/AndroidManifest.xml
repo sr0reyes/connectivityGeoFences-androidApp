@@ -37,11 +37,11 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name="$Activities.GeofenceMapActivity"
-            android:parentActivityName=".Activities.GefencesListActivity"
+            android:name="com.example.connectivitygeofence.Activities.GeofenceMapActivity"
+            android:parentActivityName="com.example.connectivitygeofence.Activities.GefencesListActivity"
             android:label="@string/title_activity_geofence_map" />
         <activity
-            android:name="$Activities.GefencesListActivity"
+            android:name="com.example.connectivitygeofence.Activities.GefencesListActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

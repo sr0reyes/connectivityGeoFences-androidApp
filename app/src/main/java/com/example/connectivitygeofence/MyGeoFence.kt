@@ -1,5 +1,6 @@
 package com.example.connectivitygeofence
 
+import android.app.PendingIntent
 import android.location.Address
 import android.location.Geocoder
 import com.google.android.gms.maps.model.Circle
@@ -17,6 +18,7 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, location: String) {
     val locationName = location
     val geofenceId = id.toString()
     val pendingIntentId = id
+    val actionCode = action
     var actionName: String
 
     init {

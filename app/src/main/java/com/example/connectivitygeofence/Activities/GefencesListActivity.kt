@@ -1,23 +1,27 @@
 package com.example.connectivitygeofence.Activities
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.*
+import com.example.connectivitygeofence.GeofenceHelper
 import com.example.connectivitygeofence.MyGeoFence
 import com.example.connectivitygeofence.R
 import com.example.connectivitygeofence.RecyclerViewAdapter
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.LocationServices
+import kotlinx.android.synthetic.main.activity_geofences_list.*
 
-import kotlinx.android.synthetic.main.activity_main.*
 
 class GefencesListActivity : AppCompatActivity() {
     companion object{
@@ -25,23 +29,30 @@ class GefencesListActivity : AppCompatActivity() {
         const val FINE_LOCATION_REQUEST_CODE = 1001
     }
 
+    private lateinit var geofencingClient: GeofencingClient
     private lateinit var rvAdapter: RecyclerViewAdapter
+    private lateinit var itemTouchHelper: ItemTouchHelper
 
     // Geogences List
-    private lateinit var currentList: MutableList<MyGeoFence>
+    private lateinit var currentGeofenceList: MutableList<MyGeoFence>
 
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_geofences_list)
         setSupportActionBar(toolbar)
 
+        geofencingClient = LocationServices.getGeofencingClient(this)
 
-        currentList =  MyGeoFence.bluetoothGeoFences
+        currentGeofenceList =  MyGeoFence.bluetoothGeoFences
         getPermissions()
         buildRecyclerView()
+
+        itemTouchHelper = ItemTouchHelper(simpleCallback)
+        itemTouchHelper.attachToRecyclerView(recycler_view)
+
 
         floating_add.setOnClickListener { view ->
             val intent = Intent(this, GeofenceMapActivity::class.java)
@@ -54,11 +65,27 @@ class GefencesListActivity : AppCompatActivity() {
         rvAdapter.notifyDataSetChanged()
     }
 
+    private val simpleCallback = object: ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT){
+        override fun onMove(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder
+        ): Boolean {
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            cancelGeoFence(viewHolder.adapterPosition)
+            removeGeoFence(viewHolder.adapterPosition)
+        }
+
+    }
+
     private fun buildRecyclerView(){
 
         recycler_view.apply {
             layoutManager = LinearLayoutManager(this@GefencesListActivity)
-            rvAdapter = RecyclerViewAdapter(currentList)
+            rvAdapter = RecyclerViewAdapter(currentGeofenceList)
             adapter = rvAdapter
         }
 
@@ -131,6 +158,17 @@ class GefencesListActivity : AppCompatActivity() {
         dialog?.show()
     }
 
+    private fun cancelGeoFence(position: Int){
+        val geofencePendingIntent = GeofenceHelper(this).getPendingIntent(currentGeofenceList[position].actionCode)
+        geofencingClient.removeGeofences(geofencePendingIntent)
+    }
+
+    private fun removeGeoFence(position: Int){
+        currentGeofenceList.removeAt(position)
+        rvAdapter.notifyItemRemoved(position)
+        Log.d(TAG, "Geofence removed")
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -146,5 +184,7 @@ class GefencesListActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+
 
 }
