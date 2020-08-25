@@ -6,7 +6,7 @@ import android.location.Geocoder
 import com.google.android.gms.maps.model.Circle
 import java.util.*
 
-class MyGeoFence(id: Int, circle: Circle, action: Int, location: String) {
+class MyGeoFence(id: Int, circle: Circle, action: Int, val address: String) {
 
     companion object geofencesList{
         val bluetoothGeoFences = mutableListOf<MyGeoFence>()
@@ -15,9 +15,8 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, location: String) {
 
     val latLng = circle.center
     val radius = circle.radius
-    val locationName = location
     val geofenceId = id.toString()
-    val pendingIntentId = id
+    val pendingIntentCode = id
     val actionCode = action
     var actionName: String
 

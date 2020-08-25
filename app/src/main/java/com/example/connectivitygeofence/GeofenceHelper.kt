@@ -10,6 +10,7 @@ import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.maps.model.LatLng
 import java.lang.Exception
+import java.nio.file.attribute.AclEntry
 
 class GeofenceHelper(base: Context?) : ContextWrapper(base) {
 
@@ -24,7 +25,7 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
 
     }
 
-    fun getGeofence(id: String, latLng: LatLng, radius: Float, transitionTypes: Int): Geofence{
+    fun getGeofence(id: String, latLng: LatLng, radius: Float): Geofence{
             return Geofence.Builder().apply {
                 setRequestId(id)
                 setCircularRegion(
@@ -33,17 +34,17 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
                     radius
                 )
                 setExpirationDuration(Geofence.NEVER_EXPIRE)
-                setTransitionTypes(transitionTypes)
+                setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL)
                 setLoiteringDelay(5000)
             }.build()
 
     }
 
-    fun getPendingIntent(action: Int): PendingIntent{
+    fun getPendingIntent(code: Int, action: Int): PendingIntent{
         val intent = Intent(this, GeoFenceBroadcastReceiver::class.java).apply {
             putExtra("ACTION", action)
         }
-        pendingIntent = PendingIntent.getBroadcast(this, 2607,
+        pendingIntent = PendingIntent.getBroadcast(this, code,
             intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         return pendingIntent

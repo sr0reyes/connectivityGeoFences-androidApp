@@ -1,7 +1,7 @@
 package com.example.connectivitygeofence.Activities
 
 import android.Manifest
-import android.app.PendingIntent
+
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -75,6 +75,8 @@ class GefencesListActivity : AppCompatActivity() {
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            Log.d("TAG", "Cancelling geofence Id: ${currentGeofenceList[viewHolder.adapterPosition].geofenceId}, " +
+                    "pendingIntentCode: ${currentGeofenceList[viewHolder.adapterPosition].pendingIntentCode} ")
             cancelGeoFence(viewHolder.adapterPosition)
             removeGeoFence(viewHolder.adapterPosition)
         }
@@ -159,8 +161,16 @@ class GefencesListActivity : AppCompatActivity() {
     }
 
     private fun cancelGeoFence(position: Int){
-        val geofencePendingIntent = GeofenceHelper(this).getPendingIntent(currentGeofenceList[position].actionCode)
+        // recreating the corresponding pending intent
+        val geofencePendingIntent = GeofenceHelper(this).
+        getPendingIntent(
+            currentGeofenceList[position].pendingIntentCode, // Pending intent code
+            currentGeofenceList[position].actionCode // Action to perform in the broadcast receiver
+        )
+
+        // remove and stop geofence monitoring passing his corresponding pending intent
         geofencingClient.removeGeofences(geofencePendingIntent)
+         Log.d(TAG, "Geofence eliminated")
     }
 
     private fun removeGeoFence(position: Int){

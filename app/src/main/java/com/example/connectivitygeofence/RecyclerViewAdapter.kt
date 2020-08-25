@@ -19,7 +19,7 @@ class RecyclerViewAdapter(geofencesList: MutableList<MyGeoFence>): RecyclerView.
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val geofence = geofencesItems[position]
-        val locationString =  geofence.locationName
+        val locationString =  geofence.address
         val actionString = geofence.actionName
 
         when(holder){

@@ -68,17 +68,15 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_geofence_map)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true);
-        supportActionBar?.setDisplayShowHomeEnabled(true);
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geofencingClient = LocationServices.getGeofencingClient(this)
         geofenceHelper = GeofenceHelper(this)
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+        // Initilizing the map
+        initMap()
 
         // search bar
         editText = findViewById(R.id.editText)
@@ -122,7 +120,7 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
             }
         })
 
-
+        // Floating Button
         floating_create.setOnClickListener {
             if(this::geofenceCircle.isInitialized){
                 showActionDialog()
@@ -134,6 +132,7 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         }
     }
 
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -143,6 +142,14 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+
+    private fun initMap(){
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -150,11 +157,6 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         getDevicePosition()
         zoomAtDevicePosition()
 
-
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
     }
 
     private fun getDevicePosition(){
@@ -208,7 +210,7 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     override fun onMapLongClick(latLng: LatLng?) {
         mMap.clear()
         if(latLng != null){
-            showLocation(latLng)
+            getClickedAddress(latLng)
             addMarker(latLng)
             addCircle(latLng)
             Log.d(TAG, "onMapLongClick: Geofence dibujado en la posicon: $latLng, radio: $currentRadius, address: ${this.geofenceAddress}")
@@ -234,29 +236,33 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
 
     }
 
-    private fun createGeoFence(latLng: LatLng, radius: Double, action: Int){
+    private fun createGeoFence(){
         geofenceId = System.currentTimeMillis().toInt()
-        val geofence = geofenceHelper.getGeofence(geofenceId.toString(), latLng, radius.toFloat(), Geofence.GEOFENCE_TRANSITION_DWELL)
-        val pendingIntent = geofenceHelper.getPendingIntent(action)
+        val myGeoFence = MyGeoFence(geofenceId, geofenceCircle, geofenceAction, geofenceAddress)
+        val geofence = geofenceHelper.getGeofence(myGeoFence.geofenceId,myGeoFence.latLng, myGeoFence.radius.toFloat())
+        val pendingIntent = geofenceHelper.getPendingIntent(myGeoFence.pendingIntentCode, myGeoFence.actionCode)
         val geofencingRequest = geofenceHelper.getGeoFencingRequest(geofence)
 
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
             addOnSuccessListener {
+                // El geovallado se agrego a la lista de geovallados que se estan monitoreando
                 showToast("Geovallado creado")
-                val createdGeofence = MyGeoFence(geofenceId, geofenceCircle, geofenceAction, geofenceAddress)
-                MyGeoFence.bluetoothGeoFences.add(createdGeofence)
-                Log.d(TAG,"createGeoFence onSuccess, geofence added")
+                MyGeoFence.bluetoothGeoFences.add(myGeoFence)
                 finish()
+                Log.d(TAG, "Geofence creado y actualmente monitoreado, " +
+                        "ID: ${myGeoFence.geofenceId}, pendingIntentCode: ${myGeoFence.pendingIntentCode} ")
             }
 
             addOnFailureListener{ e->
                 val errorMessage = geofenceHelper.getErrors(e)
                 Log.d(TAG, "createGeoFence onFailure: $errorMessage")
+                showToast("Geovallado no creado intente de nuevo")
+                finish()
             }
         }
 
 
-        Log.d(TAG, "createGeofence: se creo la geofence: id: $geofenceId, position: $latLng, radius: $radius")
+
     }
 
     private fun changeButtonPosition(){
@@ -304,7 +310,7 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
                             geofenceAction = item
                         })
         builder?.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
-            createGeoFence(geofenceCircle.center, geofenceCircle.radius, geofenceAction)
+            createGeoFence()
         })
 
         builder?.setNegativeButton(R.string.cancel, DialogInterface.OnClickListener{ dialog, id ->
@@ -316,10 +322,10 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         dialog?.show()
     }
 
-    private fun showLocation(latLng: LatLng){
+    private fun getClickedAddress(latLng: LatLng){
 
         val addresses: List<Address>
-        val geocoder: Geocoder = Geocoder(this, Locale.getDefault())
+        val geocoder = Geocoder(this, Locale.getDefault())
 
         addresses = geocoder.getFromLocation(
             latLng.latitude,
@@ -328,13 +334,13 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         ) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
 
 
-        val address = addresses[0]
+        val clickedAddress = addresses[0]
             .getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
 
-        this.geofenceAddress = address
-        editText.setText(this.geofenceAddress)
+        this.geofenceAddress = clickedAddress
 
-        Log.d(TAG, "Location clicked: $address")
+        // Set the clicked address in the search box
+        editText.setText(this.geofenceAddress)
 
     }
 
