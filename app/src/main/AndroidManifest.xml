@@ -39,6 +39,7 @@
         <activity
             android:name="com.example.connectivitygeofence.Activities.GeofenceMapActivity"
             android:parentActivityName="com.example.connectivitygeofence.Activities.GefencesListActivity"
+            android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_geofence_map" />
         <activity
             android:name="com.example.connectivitygeofence.Activities.GefencesListActivity"

@@ -27,8 +27,8 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, val address: String) {
 
     private fun getActionName(action: Int): String{
         when(action){
-            0 -> return "Activar"
-            1 -> return "Desactivar"
+            0 -> return "Activar Bluetooth"
+            1 -> return "Desactivar Bluetooth"
         }
 
         return "No valido"
