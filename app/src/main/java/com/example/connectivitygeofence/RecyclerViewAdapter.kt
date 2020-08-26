@@ -4,8 +4,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.connectivitygeofence.MyClasses.MyGeoFence
 import kotlinx.android.synthetic.main.layout_item_geofence.view.*
-import java.util.ArrayList
 
 class RecyclerViewAdapter(geofencesList: MutableList<MyGeoFence>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

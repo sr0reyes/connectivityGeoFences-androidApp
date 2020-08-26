@@ -1,10 +1,6 @@
-package com.example.connectivitygeofence
+package com.example.connectivitygeofence.MyClasses
 
-import android.app.PendingIntent
-import android.location.Address
-import android.location.Geocoder
 import com.google.android.gms.maps.model.Circle
-import java.util.*
 
 class MyGeoFence(id: Int, circle: Circle, action: Int, val address: String) {
 
@@ -27,8 +23,8 @@ class MyGeoFence(id: Int, circle: Circle, action: Int, val address: String) {
 
     private fun getActionName(action: Int): String{
         when(action){
-            0 -> return "Activar Bluetooth"
-            1 -> return "Desactivar Bluetooth"
+            0 -> return "Activar Bluetooth en"
+            1 -> return "Desactivar Bluetooth en"
         }
 
         return "No valido"

@@ -14,8 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.*
-import com.example.connectivitygeofence.GeofenceHelper
-import com.example.connectivitygeofence.MyGeoFence
+import com.example.connectivitygeofence.MyClasses.GeofenceHelper
+import com.example.connectivitygeofence.MyClasses.MyGeoFence
 import com.example.connectivitygeofence.R
 import com.example.connectivitygeofence.RecyclerViewAdapter
 import com.google.android.gms.location.GeofencingClient
@@ -162,7 +162,9 @@ class GefencesListActivity : AppCompatActivity() {
 
     private fun cancelGeoFence(position: Int){
         // recreating the corresponding pending intent
-        val geofencePendingIntent = GeofenceHelper(this).
+        val geofencePendingIntent = GeofenceHelper(
+            this
+        ).
         getPendingIntent(
             currentGeofenceList[position].pendingIntentCode, // Pending intent code
             currentGeofenceList[position].actionCode // Action to perform in the broadcast receiver

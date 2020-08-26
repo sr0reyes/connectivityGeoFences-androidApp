@@ -14,11 +14,10 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.connectivitygeofence.GeofenceHelper
-import com.example.connectivitygeofence.MyGeoFence
+import com.example.connectivitygeofence.MyClasses.GeofenceHelper
+import com.example.connectivitygeofence.MyClasses.MyGeoFence
 import com.example.connectivitygeofence.R
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -73,7 +72,8 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geofencingClient = LocationServices.getGeofencingClient(this)
-        geofenceHelper = GeofenceHelper(this)
+        geofenceHelper =
+            GeofenceHelper(this)
 
         // Initilizing the map
         initMap()
@@ -238,7 +238,12 @@ class GeofenceMapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
 
     private fun createGeoFence(){
         geofenceId = System.currentTimeMillis().toInt()
-        val myGeoFence = MyGeoFence(geofenceId, geofenceCircle, geofenceAction, geofenceAddress)
+        val myGeoFence = MyGeoFence(
+            geofenceId,
+            geofenceCircle,
+            geofenceAction,
+            geofenceAddress
+        )
         val geofence = geofenceHelper.getGeofence(myGeoFence.geofenceId,myGeoFence.latLng, myGeoFence.radius.toFloat())
         val pendingIntent = geofenceHelper.getPendingIntent(myGeoFence.pendingIntentCode, myGeoFence.actionCode)
         val geofencingRequest = geofenceHelper.getGeoFencingRequest(geofence)
