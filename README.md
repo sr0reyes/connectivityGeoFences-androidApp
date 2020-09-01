@@ -18,4 +18,8 @@ Android app that allows the user to set the locations where the Wi-Fi or the Blu
 
 - You need your own Google Maps Api Key
 
+## Screenshots
+
+|[](screenshots/Screenshot_20200901-001808.png)
+
 
