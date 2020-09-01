@@ -20,6 +20,6 @@ Android app that allows the user to set the locations where the Wi-Fi or the Blu
 
 ## Screenshots
 
-|[](screenshots/Screenshot_20200901-001808.png)
+![](screenshots/Screenshot_20200901-001808.png)
 
 
